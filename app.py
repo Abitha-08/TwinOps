@@ -13,15 +13,102 @@ st.set_page_config(page_title="TwinOps | Software Optimization", page_icon="∞"
 
 # ---------- Styling ----------
 st.markdown("""
+
+# ---------- Styling ----------
+st.markdown("""
 <style>
-.main {background-color:#f5f7fb;}
-.block-container {padding-top:1.2rem;}
-[data-testid="stSidebar"] {background:#101936;}
-[data-testid="stSidebar"] * {color:#f5f7ff !important;}
-.metric-card {background:white;padding:18px;border-radius:14px;border:1px solid #e7eaf2;}
-.small-muted {color:#64748b;font-size:13px;}
+
+/* Main application background */
+.stApp {
+    background-color: #EEF4FF;
+}
+
+/* Full available screen width */
+.block-container {
+    max-width: 100% !important;
+    padding-top: 1.2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    padding-bottom: 2rem !important;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #102A56, #174A91);
+}
+
+[data-testid="stSidebar"] * {
+    color: #FFFFFF !important;
+}
+
+/* Headings */
+h1, h2, h3 {
+    color: #12366B !important;
+}
+
+/* Dashboard metric cards */
+div[data-testid="stMetric"] {
+    background: #FFFFFF;
+    border: 1px solid #C9DDFB;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 3px 12px rgba(30, 80, 150, 0.07);
+}
+
+/* Buttons */
+.stButton > button {
+    background-color: #2563EB;
+    color: white;
+    border: 1px solid #2563EB;
+    border-radius: 9px;
+    font-weight: 600;
+}
+
+.stButton > button:hover {
+    background-color: #1746B5;
+    color: white;
+    border-color: #1746B5;
+}
+
+/* Input fields */
+.stTextInput input,
+.stSelectbox div[data-baseweb="select"],
+.stNumberInput input {
+    border-radius: 8px;
+    border-color: #B7CFF5;
+}
+
+/* Data tables */
+[data-testid="stDataFrame"] {
+    border: 1px solid #C9DDFB;
+    border-radius: 10px;
+}
+
+/* Custom cards */
+.metric-card {
+    background: #FFFFFF;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #C9DDFB;
+}
+
+/* Muted text */
+.small-muted {
+    color: #64748B;
+    font-size: 13px;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 768px) {
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
+
 
 # ---------- Demo data ----------
 @st.cache_data
