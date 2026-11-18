@@ -607,6 +607,7 @@ def sidebar():
 
 # ---------- Admin Panel ----------
 
+
 def admin_panel():
 
     st.title("Admin Control Center")
@@ -614,45 +615,201 @@ def admin_panel():
 
     st.divider()
 
+    # Initialize employee data
+    if "twinops_users" not in st.session_state:
+        st.session_state.twinops_users = [
+            {
+                "User ID": "USR001",
+                "Name": "Admin",
+                "Role": "Admin",
+                "Email": "admin@twinops.com",
+                "Access Level": "Full Administrative Access",
+                "Status": "Active"
+            },
+            {
+                "User ID": "USR002",
+                "Name": "Developer",
+                "Role": "Developer",
+                "Email": "developer@twinops.com",
+                "Access Level": "Developer Access",
+                "Status": "Active"
+            }
+        ]
+
+    # System Overview
     st.subheader("System Overview")
+
+    users = st.session_state.twinops_users
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("Registered Users", "2")
-    c2.metric("Active Roles", "2")
+    c1.metric("Registered Users", len(users))
+    c2.metric(
+        "Active Roles",
+        len(set(user["Role"] for user in users))
+    )
     c3.metric("Application Status", "Active")
     c4.metric("ML Engine", "Ready")
 
     st.divider()
 
-
     # User Management
     st.subheader("User Management")
 
-    users = pd.DataFrame({
-        "User ID": ["USR001", "USR002"],
-        "Role": ["Admin", "Developer"],
-        "Email": [
-            "admin@twinops.com",
-            "developer@twinops.com"
-        ],
-        "Access Level": [
-            "Full Administrative Access",
-            "Developer Access"
-        ],
-        "Status": ["Active", "Active"]
-    })
+    st.write("Manage employees and their application access.")
+
+    # Add Employee
+    with st.expander("➕ Add New Employee", expanded=False):
+
+        with st.form("add_employee_form"):
+
+            employee_name = st.text_input("Employee Name")
+            employee_id = st.text_input("Employee ID")
+            employee_email = st.text_input("Email Address")
+
+            employee_role = st.selectbox(
+                "Employee Role",
+                ["Developer", "Employee"]
+            )
+
+            submitted = st.form_submit_button(
+                "Add Employee",
+                use_container_width=True
+            )
+
+            if submitted:
+
+                if not employee_name.strip():
+                    st.error("Please enter employee name.")
+
+                elif not employee_id.strip():
+                    st.error("Please enter Employee ID.")
+
+                elif not employee_email.strip() or "@" not in employee_email:
+                    st.error("Please enter a valid email address.")
+
+                elif any(
+                    user["User ID"].lower() == employee_id.strip().lower()
+                    or user["Email"].lower() == employee_email.strip().lower()
+                    for user in st.session_state.twinops_users
+                ):
+                    st.error("Employee ID or Email already exists.")
+
+                else:
+
+                    new_employee = {
+                        "User ID": employee_id.strip(),
+                        "Name": employee_name.strip(),
+                        "Role": employee_role,
+                        "Email": employee_email.strip(),
+                        "Access Level": employee_role + " Access",
+                        "Status": "Active"
+                    }
+
+                    st.session_state.twinops_users.append(
+                        new_employee
+                    )
+
+                    st.success("Employee added successfully!")
+                    st.rerun()
+
+    # Display Employee List
+    st.markdown("### Registered Employees")
+
+    users = st.session_state.twinops_users
+
+    employee_df = pd.DataFrame(users)
 
     st.dataframe(
-        users,
+        employee_df,
         hide_index=True,
         use_container_width=True
     )
 
+    st.caption(
+        "Admin account is protected and cannot be removed through this section."
+    )
+
+    # Remove Employees
+    st.markdown("### Remove Employees")
+
+    removable_users = [
+        user for user in users
+        if user["Role"] != "Admin"
+    ]
+
+    if removable_users:
+
+        employee_options = {
+            user["User ID"] + " - " + user["Name"] + " (" + user["Email"] + ")":
+            user["User ID"]
+            for user in removable_users
+        }
+
+        selected_employees = st.multiselect(
+            "Select employees to remove",
+            options=list(employee_options.keys())
+        )
+
+        if st.button(
+            "Remove Selected Employees",
+            type="primary",
+            use_container_width=True
+        ):
+
+            if selected_employees:
+
+                selected_ids = [
+                    employee_options[name]
+                    for name in selected_employees
+                ]
+
+                st.session_state.pending_removals = selected_ids
+                st.session_state.confirm_employee_removal = True
+                st.rerun()
+
+            else:
+                st.warning("Please select at least one employee.")
+
+        # Deletion confirmation
+        if st.session_state.get("confirm_employee_removal", False):
+
+            st.warning(
+                "Are you sure you want to remove the selected employees?"
+            )
+
+            confirm_col, cancel_col = st.columns(2)
+
+            with confirm_col:
+                if st.button("Yes, Remove", use_container_width=True):
+
+                    selected_ids = st.session_state.pending_removals
+
+                    st.session_state.twinops_users = [
+                        user for user in st.session_state.twinops_users
+                        if user["User ID"] not in selected_ids
+                    ]
+
+                    st.session_state.confirm_employee_removal = False
+                    st.session_state.pending_removals = []
+
+                    st.success("Selected employees removed successfully!")
+                    st.rerun()
+
+            with cancel_col:
+                if st.button("Cancel", use_container_width=True):
+
+                    st.session_state.confirm_employee_removal = False
+                    st.session_state.pending_removals = []
+
+                    st.rerun()
+
+    else:
+        st.info("No employees available to remove.")
+
     st.divider()
 
     # System Health
-    
     st.subheader("System Health")
 
     h1, h2, h3 = st.columns(3)
@@ -668,33 +825,43 @@ def admin_panel():
 
     st.divider()
 
-
     # User Access Management
     st.subheader("User Access Management")
 
+    users = st.session_state.twinops_users
+
     selected_user = st.selectbox(
         "Select User",
-        [
-            "admin@twinops.com",
-            "developer@twinops.com"
-        ]
+        [user["Email"] for user in users]
     )
 
-    if selected_user == "admin@twinops.com":
-        st.write("**Role:** Admin")
+    current_user = next(
+        user for user in users
+        if user["Email"] == selected_user
+    )
+
+    st.write("**Name:**", current_user["Name"])
+    st.write("**User ID:**", current_user["User ID"])
+    st.write("**Role:**", current_user["Role"])
+
+    if current_user["Role"] == "Admin":
         st.success("Full administrative access")
-        st.write("Permissions: Dashboard, Admin Panel, ML, Simulation")
+        st.write(
+            "Permissions: Dashboard, Admin Panel, "
+            "Digital Twin, ML, Simulation and User Management"
+        )
 
     else:
-        st.write("**Role:** Developer")
-        st.info("Developer access")
-        st.write("Permissions: Dashboard, Digital Twin, ML, Simulation")
+        st.info(current_user["Role"] + " access")
+        st.write(
+            "Permissions: Dashboard, Digital Twin, "
+            "ML and Simulation"
+        )
 
     st.caption(
-        "This is a permission overview. It does not modify real account credentials."
+        "This is a demo permission overview. "
+        "It does not create or authenticate real employee accounts."
     )
-
-    st.divider()
 
 
     # AI and SLM status
