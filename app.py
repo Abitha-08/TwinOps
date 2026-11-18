@@ -9,19 +9,123 @@ from sklearn.metrics import mean_absolute_error
 from datetime import datetime
 import requests
 
-st.set_page_config(page_title="TwinOps | Software Optimization", page_icon="∞", layout="wide")
+st.set_page_config(
+    page_title="TwinOps | Software Optimization",
+    page_icon="∞",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ---------- Styling ----------
+
+# ---------- Styling ----------
 
 # ---------- Styling ----------
 st.markdown("""
 <style>
-.main {background-color:#f5f7fb;}
-.block-container {padding-top:1.2rem;}
-[data-testid="stSidebar"] {background:#101936;}
-[data-testid="stSidebar"] * {color:#f5f7ff !important;}
-.metric-card {background:white;padding:18px;border-radius:14px;border:1px solid #e7eaf2;}
-.small-muted {color:#64748b;font-size:13px;}
+
+/* Main application background */
+.stApp,
+[data-testid="stAppViewContainer"] {
+    background: #F5F8FF !important;
+    color: #172554 !important;
+}
+
+/* Full-width responsive content */
+.block-container {
+    max-width: 100% !important;
+    padding: 2rem 2.5rem !important;
+}
+
+/* Sidebar size and background */
+section[data-testid="stSidebar"] {
+    width: 320px !important;
+    min-width: 320px !important;
+}
+
+section[data-testid="stSidebar"] > div {
+    width: 320px !important;
+    background: linear-gradient(180deg, #0B1735, #142D58) !important;
+}
+
+/* Sidebar typography */
+section[data-testid="stSidebar"] h1 {
+    color: #FFFFFF !important;
+    font-size: 30px !important;
+    font-weight: 800 !important;
+}
+
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span {
+    color: #F1F5FF !important;
+}
+
+/* Navigation heading */
+section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+}
+
+/* Navigation spacing */
+section[data-testid="stSidebar"] div[role="radiogroup"] {
+    gap: 8px !important;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    min-height: 42px !important;
+    padding: 9px 10px !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+}
+
+/* Sidebar dividers */
+section[data-testid="stSidebar"] hr {
+    border-color: #34496F !important;
+}
+
+/* Main headings */
+h1, h2, h3 {
+    color: #14213D !important;
+}
+
+/* Buttons */
+.stButton > button {
+    background: #1764E8 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 9px !important;
+    padding: 10px 18px !important;
+}
+
+/* Metric cards */
+.metric-card {
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid #DCE5F5;
+}
+
+/* Responsive laptop and tablet layout */
+@media (max-width: 1000px) {
+    section[data-testid="stSidebar"] {
+        width: 280px !important;
+        min-width: 280px !important;
+    }
+
+    section[data-testid="stSidebar"] > div {
+        width: 280px !important;
+    }
+
+    .block-container {
+        padding: 1.2rem !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
+
 
 # ---------- Demo data ----------
 @st.cache_data
@@ -38,57 +142,541 @@ def make_history(seed=17):
 
 FEATURES = ["cpu", "memory", "requests", "response_time", "error_rate"]
 
+
+    # ---------- Session State ----------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
+if "user_role" not in st.session_state:
+    st.session_state.user_role = None
+
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
+
 if "selected_scenario" not in st.session_state:
     st.session_state.selected_scenario = "High CPU + slow response"
 
 # ---------- Login ----------
+
+    
+# ---------- Login ----------
+
+# ---------- Login ----------
 def login_page():
-    left, right = st.columns([1.05, 1])
+
+    st.markdown("""
+    <style>
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 100% !important;
+    }
+
+    .login-brand {
+        min-height: 650px;
+        height: 100%;
+        background: linear-gradient(140deg, #09152F, #142D58, #284B91);
+        border-radius: 24px;
+        padding: 65px 55px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 15px 40px rgba(15, 35, 75, 0.18);
+    }
+
+    .login-brand h1 {
+        color: white !important;
+        font-size: 55px !important;
+        font-weight: 850 !important;
+        margin-bottom: 20px;
+    }
+
+    .login-brand h2 {
+        color: white !important;
+        font-size: 32px !important;
+        line-height: 1.4;
+    }
+
+    .login-brand p {
+        color: #DCE8FF !important;
+        font-size: 19px;
+        line-height: 1.8;
+    }
+
+    .login-brand .tagline {
+        color: #91B8FF;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        margin-bottom: 25px;
+    }
+
+    div[data-testid="stTextInput"] input {
+        min-height: 52px;
+        font-size: 17px;
+        border-radius: 9px;
+    }
+
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+        min-height: 52px;
+    }
+
+    .login-heading {
+        font-size: 38px;
+        font-weight: 800;
+        color: #14213D;
+        margin-bottom: 5px;
+    }
+
+    .login-subtitle {
+        font-size: 17px;
+        color: #64748B;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 800px) {
+        .login-brand {
+            min-height: 350px;
+            padding: 35px 25px;
+        }
+
+        .login-brand h1 {
+            font-size: 38px !important;
+        }
+
+        .login-brand h2 {
+            font-size: 24px !important;
+        }
+
+        .block-container {
+            padding: 1rem !important;
+        }
+    }
+
+/* Sidebar navigation design */
+section[data-testid="stSidebar"] {
+    min-width: 290px !important;
+    width: 290px !important;
+}
+
+section[data-testid="stSidebar"] > div {
+    padding: 25px 18px;
+}
+
+section[data-testid="stSidebar"] h1 {
+    font-size: 30px !important;
+    font-weight: 850 !important;
+}
+
+section[data-testid="stSidebar"] [data-testid="stRadio"] label {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 9px 5px !important;
+}
+
+section[data-testid="stSidebar"] [data-testid="stRadio"] {
+    gap: 10px !important;
+}
+
+section[data-testid="stSidebar"] [data-testid="stAlert"] {
+    border-radius: 12px;
+}
+
+section[data-testid="stSidebar"] hr {
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+    </style>
+    """, unsafe_allow_html=True)
+
+    left, right = st.columns(
+        [1.2, 1],
+        gap="large",
+        vertical_alignment="center"
+    )
+
     with left:
-        st.markdown("<div style='background:linear-gradient(145deg,#101936,#263d86);padding:48px 30px;border-radius:18px;color:white;min-height:420px'>", unsafe_allow_html=True)
-        st.markdown("# ∞ TwinOps")
-        st.markdown("### Smarter Monitoring.\n### Safer Software Optimization.")
-        st.write("An application-independent SLM-powered Digital Twin framework for monitoring, analysis and safer optimization.")
-        st.markdown("<br><br><h2>Monitor → Analyze → Simulate → Improve</h2>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="login-brand">
+            <div class="tagline">SOFTWARE PERFORMANCE INTELLIGENCE</div>
+            <h1>∞ TwinOps</h1>
+            <h2>Smarter Monitoring.<br>Safer Software Optimization.</h2>
+            <p>
+                An application-independent SLM-powered Digital Twin
+                framework for monitoring, analysis and safer optimization.
+            </p>
+            <br>
+            <h2>Monitor → Analyze<br>Simulate → Improve</h2>
+            <br>
+            <p>Intelligent insights for better software performance.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
     with right:
-        st.subheader("Welcome Back")
-        st.caption("Sign in to continue to the TwinOps demo")
-        email = st.text_input("Email address", value="demo@twinops.com")
-        password = st.text_input("Password", type="password", value="twinops123")
-        if st.button("Sign In", type="primary", use_container_width=True):
-            if email == "demo@twinops.com" and password == "twinops123":
-                st.session_state.logged_in = True
-                st.rerun()
-            else:
-                st.error("Invalid demo credentials. Please use the credentials shown below.")
-        st.info("Demo login: demo@twinops.com  |  Password: twinops123")
-        st.caption("This is demonstration authentication only, not production-grade account security.")
+        st.write("")
+        st.write("")
+
+        with st.container(border=True):
+            st.markdown(
+                '<div class="login-heading">Welcome Back</div>',
+                unsafe_allow_html=True
+            )
+
+            st.markdown(
+                '<div class="login-subtitle">Sign in to continue to TwinOps</div>',
+                unsafe_allow_html=True
+            )
+
+            role = st.selectbox(
+                "Select Your Role",
+                ["Admin", "Developer"]
+            )
+
+            email = st.text_input(
+                "Email Address",
+                placeholder="Enter your email address"
+            )
+
+            password = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Enter your password"
+            )
+
+            st.write("")
+
+            if st.button(
+                "Sign In",
+                type="primary",
+                use_container_width=True
+            ):
+
+                if role == "Admin":
+                    if email == "admin@twinops.com" and password == "admin123":
+                        st.session_state.logged_in = True
+                        st.session_state.user_role = "Admin"
+                        st.session_state.current_user = email
+                        st.rerun()
+                    else:
+                        st.error("Invalid Admin credentials.")
+
+                elif role == "Developer":
+                    if email == "developer@twinops.com" and password == "dev123":
+                        st.session_state.logged_in = True
+                        st.session_state.user_role = "Developer"
+                        st.session_state.current_user = email
+                        st.rerun()
+                    else:
+                        st.error("Invalid Developer credentials.")
+
+            st.divider()
+
+            st.caption("DEMO LOGIN CREDENTIALS")
+
+            st.info(
+                "Admin: admin@twinops.com | Password: admin123\n\n"
+                "Developer: developer@twinops.com | Password: dev123"
+            )
+
+            st.caption("Demonstration authentication only.")
+
+
+
+# ---------- Sidebar ----------
+
+# ---------- Sidebar ----------
+
+# ---------- Sidebar ----------
 
 # ---------- Sidebar ----------
 def sidebar():
+
     st.sidebar.markdown("# ∞ TwinOps")
-    st.sidebar.caption("Software performance intelligence")
-    page = st.sidebar.radio("NAVIGATION", ["Dashboard", "Digital Twin Topology", "ML & SLM Analysis", "Simulation & Trust", "Logout"], index=0)
+    st.sidebar.caption("SOFTWARE PERFORMANCE INTELLIGENCE")
     st.sidebar.divider()
-    st.sidebar.markdown("**System status**")
+
+    if st.session_state.user_role == "Admin":
+
+        navigation = [
+            "Dashboard",
+            "Admin Panel",
+            "Digital Twin Topology",
+            "ML & SLM Analysis",
+            "Simulation & Trust",
+            "06 - Adaptation Centre",
+            "07 - Alerts & Notifications",
+            "08 - Performance Trends & Analytics",
+            "09 - Knowledge Store & History",
+            "10 - Settings & Configuration",
+            "11 - Connector Management",
+            "12 - E-Commerce Application",
+            "13 - Reports & Export",
+            "14 - About & Help",
+            "Logout"
+        ]
+
+    else:
+
+        navigation = [
+            "Dashboard",
+            "Digital Twin Topology",
+            "ML & SLM Analysis",
+            "Simulation & Trust",
+            "06 - Adaptation Centre",
+            "07 - Alerts & Notifications",
+            "08 - Performance Trends & Analytics",
+            "09 - Knowledge Store & History",
+            "10 - Settings & Configuration",
+            "11 - Connector Management",
+            "12 - E-Commerce Application",
+            "13 - Reports & Export",
+            "14 - About & Help",
+            "Logout"
+        ]
+
+    page = st.sidebar.radio(
+        "MAIN NAVIGATION",
+        navigation,
+        index=0
+    )
+
+    st.sidebar.divider()
+
+    st.sidebar.markdown("### Logged-in User")
+    st.sidebar.info(
+        f"**Role:** {st.session_state.user_role}\n\n"
+        f"**Email:** {st.session_state.current_user}"
+    )
+
+    st.sidebar.markdown("### System Status")
     st.sidebar.success("Demo data source connected")
     st.sidebar.success("ML engine ready")
     st.sidebar.warning("Ollama SLM optional")
+
     return page
+
+
+
+# ---------- Admin Panel ----------
+
+# ---------- Admin Panel ----------
+
+def admin_panel():
+
+    st.title("Admin Control Center")
+    st.caption("TwinOps System Administration and Monitoring")
+
+    st.divider()
+
+    st.subheader("System Overview")
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric("Registered Users", "2")
+    c2.metric("Active Roles", "2")
+    c3.metric("Application Status", "Active")
+    c4.metric("ML Engine", "Ready")
+
+    st.divider()
+
+
+    # User Management
+    st.subheader("User Management")
+
+    users = pd.DataFrame({
+        "User ID": ["USR001", "USR002"],
+        "Role": ["Admin", "Developer"],
+        "Email": [
+            "admin@twinops.com",
+            "developer@twinops.com"
+        ],
+        "Access Level": [
+            "Full Administrative Access",
+            "Developer Access"
+        ],
+        "Status": ["Active", "Active"]
+    })
+
+    st.dataframe(
+        users,
+        hide_index=True,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    # System Health
+    
+    st.subheader("System Health")
+
+    h1, h2, h3 = st.columns(3)
+
+    h1.metric("CPU Utilization", "43%")
+    h2.metric("Memory Utilization", "55%")
+    h3.metric("Average Response", "900 ms")
+
+    st.caption(
+        "Illustrative demo metrics. "
+        "These values are not collected from a live production server."
+    )
+
+    st.divider()
+
+
+    # User Access Management
+    st.subheader("User Access Management")
+
+    selected_user = st.selectbox(
+        "Select User",
+        [
+            "admin@twinops.com",
+            "developer@twinops.com"
+        ]
+    )
+
+    if selected_user == "admin@twinops.com":
+        st.write("**Role:** Admin")
+        st.success("Full administrative access")
+        st.write("Permissions: Dashboard, Admin Panel, ML, Simulation")
+
+    else:
+        st.write("**Role:** Developer")
+        st.info("Developer access")
+        st.write("Permissions: Dashboard, Digital Twin, ML, Simulation")
+
+    st.caption(
+        "This is a permission overview. It does not modify real account credentials."
+    )
+
+    st.divider()
+
+
+    # AI and SLM status
+    st.subheader("AI & SLM Services")
+
+    a, b = st.columns(2)
+
+    with a:
+        st.markdown("**Machine Learning Engine**")
+        st.success("Isolation Forest: Ready")
+        st.success("Random Forest: Ready")
+
+    with b:
+        st.markdown("**Small Language Model**")
+        st.info("Ollama: Optional local service")
+        st.caption("SLM availability depends on local Ollama setup.")
+
+    st.divider()
+
+    # Activity overview
+    st.subheader("System Activity")
+
+    activity = pd.DataFrame({
+        "Activity": [
+            "Admin account configured",
+            "Developer account configured",
+            "Dashboard module available",
+            "ML analysis module available",
+            "Simulation module available"
+        ],
+        "Status": [
+            "Completed",
+            "Completed",
+            "Available",
+            "Available",
+            "Available"
+        ]
+    })
+
+    st.dataframe(
+        activity,
+        hide_index=True,
+        use_container_width=True
+    )
+
+    st.info(
+        "TwinOps Admin Panel uses demonstration account and sample system data. "
+        "It does not manage real users or monitor a production application."
+    )
+
 
 # ---------- Dashboard ----------
 def dashboard(history, current):
     st.title("TwinOps Overview")
     st.caption("Monitor the sample application and review its current performance.")
     health = max(0, min(100, 100 - max(0,current['cpu']-60)*0.55 - max(0,current['response_time']-1)*12 - current['error_rate']*2))
-    cols = st.columns(4)
-    cols[0].metric("Health Score", f"{health:.1f}%", "Demo estimate")
-    cols[1].metric("Response Time", f"{current['response_time']*1000:.0f} ms")
-    cols[2].metric("Error Rate", f"{current['error_rate']:.1f}%")
-    cols[3].metric("CPU Usage", f"{current['cpu']:.0f}%")
+    
+    st.title("TwinOps Dashboard")
+    st.caption("Software Performance Monitoring and Intelligence")
+
+    st.divider()
+
+    st.subheader("Live System Overview")
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+
+    c1.metric(
+        "CPU Usage",
+        f"{current['cpu']}%",
+        "System utilization"
+    )
+
+    c2.metric(
+        "Memory Usage",
+        f"{current['memory']}%",
+        "Memory utilization"
+    )
+
+    c3.metric(
+        "Incoming Requests",
+        f"{int(current['requests'])}",
+        "Request count"
+    )
+
+    c4.metric(
+        "Response Time",
+        f"{current['response_time']} s",
+        "Average response"
+    )
+
+    c5.metric(
+        "Error Rate",
+        f"{current['error_rate']}%",
+        "Application errors"
+    )
+
+    st.divider()
+
+    st.subheader("Performance Analytics")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### CPU Usage Trend")
+
+        fig_cpu = px.line(
+            history,
+            x=history.index,
+            y="cpu",
+            title="CPU Utilization"
+        )
+
+        st.plotly_chart(fig_cpu, use_container_width=True)
+
+    with col2:
+        st.markdown("#### Memory Usage Trend")
+
+        fig_memory = px.line(
+            history,
+            x=history.index,
+            y="memory",
+            title="Memory Utilization"
+        )
+
+        st.plotly_chart(fig_memory, use_container_width=True)
+
     st.subheader("Performance trend")
     plot_df = history.tail(36).reset_index(names="sample")
     fig = go.Figure()
@@ -232,17 +820,51 @@ def simulation_page():
         st.success("Simulation marked as approved for human review. No live system configuration was changed.")
 
 # ---------- Main ----------
+
+# ---------- Main ----------
+
+# ---------- Main App ----------
+
 history = make_history()
+
 if not st.session_state.logged_in:
     login_page()
+
 else:
     page = sidebar()
-    # Default current observation is a normal sample; analysis page offers selectable stress scenarios.
-    current = {"cpu":43.0,"memory":55.0,"requests":620.0,"response_time":0.9,"error_rate":1.0}
-    if page == "Dashboard": dashboard(history,current)
-    elif page == "Digital Twin Topology": topology(current)
-    elif page == "ML & SLM Analysis": ml_slm_page(history)
-    elif page == "Simulation & Trust": simulation_page()
+
+    current = {
+        "cpu": 43.0,
+        "memory": 55.0,
+        "requests": 620.0,
+        "response_time": 0.9,
+        "error_rate": 1.0
+    }
+
+    if page == "Dashboard":
+        dashboard(history, current)
+
+    elif page == "Admin Panel":
+        if st.session_state.user_role == "Admin":
+            admin_panel()
+        else:
+            st.error("Access denied. Admin permission required.")
+
+    elif page == "Digital Twin Topology":
+        topology(current)
+
+    elif page == "ML & SLM Analysis":
+        ml_slm_page(history)
+
+    elif page == "Simulation & Trust":
+        simulation_page()
+
     elif page == "Logout":
         st.session_state.logged_in = False
+        st.session_state.user_role = None
+        st.session_state.current_user = None
         st.rerun()
+
+    else:
+        st.title(page)
+        st.info("This section is reserved for the next development stage.")
