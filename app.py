@@ -123,6 +123,129 @@ h1, h2, h3 {
     }
 }
 
+/* ---------- LARGE SIDEBAR DESIGN ---------- */
+
+section[data-testid="stSidebar"] {
+    min-width: 340px !important;
+    width: 340px !important;
+}
+
+section[data-testid="stSidebar"] > div {
+    width: 340px !important;
+    padding: 1.5rem 1rem !important;
+}
+
+/* TwinOps branding */
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 8px 20px 8px;
+}
+
+.sidebar-logo {
+    font-size: 48px;
+    font-weight: 900;
+    color: #4F8BFF;
+}
+
+.sidebar-brand h1 {
+    font-size: 30px;
+    font-weight: 850;
+    margin: 0;
+    color: #FFFFFF;
+}
+
+.sidebar-brand p {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    margin: 4px 0 0 0;
+    color: #8FAAD7;
+}
+
+/* Navigation heading */
+
+.nav-heading {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    padding: 12px 8px;
+    color: #7095CF;
+}
+
+/* Module names */
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    padding: 12px 10px !important;
+    border-radius: 9px !important;
+    margin-bottom: 5px !important;
+}
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label p {
+    font-size: 16px !important;
+    font-weight: 650 !important;
+    line-height: 1.5 !important;
+}
+
+/* Radio button size */
+
+section[data-testid="stSidebar"] div[role="radiogroup"] label div {
+    font-size: 16px !important;
+}
+
+/* Logged-in user section */
+
+.user-card {
+    padding: 10px 5px;
+}
+
+.user-label {
+    color: #7095CF;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
+
+/* Sidebar text */
+
+section[data-testid="stSidebar"] .stCaption {
+    font-size: 13px;
+}
+
+/* Responsive sidebar */
+
+@media (max-width: 800px) {
+    section[data-testid="stSidebar"] {
+        min-width: 280px !important;
+        width: 280px !important;
+    }
+}
+
+/* Selected navigation item */
+
+section[data-testid="stSidebar"]
+div[role="radiogroup"] label:has(input:checked) {
+    background-color: rgba(65, 125, 230, 0.20) !important;
+    border: 1px solid rgba(65, 125, 230, 0.55) !important;
+}
+
+/* Navigation hover effect */
+
+section[data-testid="stSidebar"]
+div[role="radiogroup"] label:hover {
+    background-color: rgba(90, 130, 190, 0.15);
+}
+
+/* Main page spacing */
+
+.main .block-container {
+    padding-top: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -386,19 +509,28 @@ section[data-testid="stSidebar"] hr {
 
 # ---------- Sidebar ----------
 
-# ---------- Sidebar ----------
-
-# ---------- Sidebar ----------
 
 # ---------- Sidebar ----------
 def sidebar():
 
-    st.sidebar.markdown("# ∞ TwinOps")
-    st.sidebar.caption("SOFTWARE PERFORMANCE INTELLIGENCE")
+    st.sidebar.markdown("""
+        <div class="sidebar-brand">
+            <div class="sidebar-logo">∞</div>
+            <div>
+                <h1>TwinOps</h1>
+                <p>SOFTWARE PERFORMANCE INTELLIGENCE</p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
     st.sidebar.divider()
 
-    if st.session_state.user_role == "Admin":
+    st.sidebar.markdown(
+        '<div class="nav-heading">MAIN NAVIGATION</div>',
+        unsafe_allow_html=True
+    )
 
+    if st.session_state.user_role == "Admin":
         navigation = [
             "Dashboard",
             "Admin Panel",
@@ -418,7 +550,6 @@ def sidebar():
         ]
 
     else:
-
         navigation = [
             "Dashboard",
             "Digital Twin Topology",
@@ -437,25 +568,38 @@ def sidebar():
         ]
 
     page = st.sidebar.radio(
-        "MAIN NAVIGATION",
+        "Select Module",
         navigation,
-        index=0
+        index=0,
+        label_visibility="collapsed"
     )
 
     st.sidebar.divider()
 
-    st.sidebar.markdown("### Logged-in User")
-    st.sidebar.info(
-        f"**Role:** {st.session_state.user_role}\n\n"
-        f"**Email:** {st.session_state.current_user}"
+    st.sidebar.markdown("""
+        <div class="user-card">
+            <div class="user-label">LOGGED-IN USER</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.sidebar.markdown(
+        f"**{st.session_state.user_role}**"
     )
 
-    st.sidebar.markdown("### System Status")
+    st.sidebar.caption(st.session_state.current_user)
+
+    st.sidebar.divider()
+
+    st.sidebar.markdown("""
+        <div class="nav-heading">SYSTEM STATUS</div>
+    """, unsafe_allow_html=True)
+
     st.sidebar.success("Demo data source connected")
     st.sidebar.success("ML engine ready")
     st.sidebar.warning("Ollama SLM optional")
 
     return page
+
 
 
 
